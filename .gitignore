@@ -5,3 +5,5 @@ node_modules/
 db_backup/
 
 *.txt
+
+package-lock.json
