@@ -44,52 +44,59 @@ const migratePropertyId = async () => {
   const usersItemsDocs = await usersItems.docs;
 
   usersItemsDocs.forEach(async (user) => {
-    const { domainId, role } = user.data();
-    const userId = user.id;
+    try {
+      const { domainId, role } = user.data();
+      const userId = user.id;
+      let updateResult;
 
-    if (!domainId || !role) {
-      console.log(
-        `user ${userId} has no domain id or role. pls do manual check. Skipping for now`
-      );
-      return;
+      if (!domainId || !role) {
+        console.log(
+          `user ${userId} has no domain id or role. pls do manual check. Skipping for now`
+        );
+        return;
+      }
+
+      const propertyId = propertyDomainIdMap[domainId];
+
+      if (!propertyId) {
+        console.error(`no such property document for domain id ${domainId}`);
+        return;
+      }
+
+      updateResult = await usersDb.doc(userId).update({ propertyId });
+
+      const targetCollection =
+        role === USER_ROLE_OWNER
+          ? staffDb
+          : role === USER_ROLE_TENANT
+          ? tenantDb
+          : null;
+
+      if (!targetCollection) {
+        console.error(
+          `user ${userId} has illegal user role of ${role}. pls remove or fix immediately!`
+        );
+      }
+
+      const { docs: documents } = await targetCollection
+        .where(USER_ID, "==", userId)
+        .get();
+
+      if (documents.length !== 1) {
+        console.log(
+          `user tenant ${userId} has invalid tenant collection document mapping. There are ${documents.length} copies of tenant entry referring to this user. Skipping for now`
+        );
+        return;
+      }
+
+      const [{ id: profileDocumentId }] = documents;
+
+      updateResult = await tenantDb
+        .doc(profileDocumentId)
+        .update({ propertyId });
+    } catch (err) {
+      console.error(err);
     }
-
-    const propertyId = propertyDomainIdMap[domainId];
-
-    if (!propertyId) {
-      console.error(`no such property document for domain id ${domainId}`);
-      return;
-    }
-
-    usersDb.doc(userId).update({ propertyId });
-
-    const targetCollection =
-      role === USER_ROLE_OWNER
-        ? staffDb
-        : role === USER_ROLE_TENANT
-        ? tenantDb
-        : null;
-
-    if (!targetCollection) {
-      console.error(
-        `user ${userId} has illegal user role of ${role}. pls remove or fix immediately!`
-      );
-    }
-
-    const { docs: documents } = await targetCollection
-      .where(USER_ID, "==", userId)
-      .get();
-
-    if (documents.length !== 1) {
-      console.log(
-        `user tenant ${userId} has invalid tenant collection document mapping. There are ${documents.length} copies of tenant entry referring to this user. Skipping for now`
-      );
-      return;
-    }
-
-    const [{ id: profileDocumentId }] = documents;
-
-    tenantDb.doc(profileDocumentId).update({ propertyId });
   });
 };
 
