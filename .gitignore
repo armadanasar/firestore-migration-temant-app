@@ -1,0 +1,7 @@
+firebase-key.json
+
+node_modules/
+
+db_backup/
+
+*.txt
