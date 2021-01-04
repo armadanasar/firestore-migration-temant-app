@@ -84,7 +84,7 @@ const migratePropertyId = async () => {
 
       if (documents.length !== 1) {
         console.log(
-          `user tenant ${userId} has invalid tenant collection document mapping. There are ${documents.length} copies of tenant entry referring to this user. Skipping for now`
+          `user ${role} ${userId} has invalid ${role} collection document mapping. There are ${documents.length} copies of ${role} entry referring to this user. Skipping for now`
         );
         return;
       }
