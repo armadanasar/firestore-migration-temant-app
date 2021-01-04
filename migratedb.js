@@ -75,6 +75,7 @@ const migratePropertyId = async () => {
         console.error(
           `user ${userId} has illegal user role of ${role}. pls remove or fix immediately!`
         );
+        return;
       }
 
       const { docs: documents } = await targetCollection
