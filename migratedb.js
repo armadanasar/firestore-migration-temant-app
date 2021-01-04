@@ -47,7 +47,6 @@ const migratePropertyId = async () => {
     try {
       const { domainId, role } = user.data();
       const userId = user.id;
-      let updateResult;
 
       if (!domainId || !role) {
         console.log(
@@ -63,7 +62,7 @@ const migratePropertyId = async () => {
         return;
       }
 
-      updateResult = await usersDb.doc(userId).update({ propertyId });
+      await usersDb.doc(userId).update({ propertyId });
 
       const targetCollection =
         role === USER_ROLE_OWNER
@@ -91,9 +90,7 @@ const migratePropertyId = async () => {
 
       const [{ id: profileDocumentId }] = documents;
 
-      updateResult = await tenantDb
-        .doc(profileDocumentId)
-        .update({ propertyId });
+      await tenantDb.doc(profileDocumentId).update({ propertyId });
     } catch (err) {
       console.error(err);
     }
