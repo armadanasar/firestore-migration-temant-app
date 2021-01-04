@@ -91,7 +91,7 @@ const migratePropertyId = async () => {
 
       const [{ id: profileDocumentId }] = documents;
 
-      await tenantDb.doc(profileDocumentId).update({ propertyId });
+      await targetCollection.doc(profileDocumentId).update({ propertyId });
     } catch (err) {
       console.error(err);
     }
